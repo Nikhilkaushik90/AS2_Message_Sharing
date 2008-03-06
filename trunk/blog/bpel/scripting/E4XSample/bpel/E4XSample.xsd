@@ -1,0 +1,48 @@
+<schema attributeFormDefault="unqualified"
+	elementFormDefault="qualified"
+	targetNamespace="http://xmlns.oracle.com/E4XSample"
+        xmlns:tns="http://xmlns.oracle.com/E4XSample"
+	xmlns="http://www.w3.org/2001/XMLSchema">
+
+              
+           <element name="invoice" type="tns:invoiceType"/>
+	   <element name="result" type="tns:invoiceType"/>  
+          
+	   <complexType name="invoiceType"> 
+		<sequence>
+		  <element name="purchaser" type="tns:partnerType"/>
+		  <element name="seller" type="tns:partnerType"/>
+		  <element name="line-item" type="tns:line-itemType"  maxOccurs="unbounded"/>
+		  <element name="total" type="double"/>
+		</sequence>
+	   </complexType>
+	   
+	   <complexType name="partnerType"> 
+		<sequence>
+		      <element name="name" type="string"/>	    
+		      <element name="address" type="tns:addressType"/>
+		 </sequence>
+		 <attribute name="uid" type="string"/>
+	   </complexType>	   
+	  
+	   <complexType name="addressType"> 
+		<sequence>
+		  <element name="street1" type="string"/>
+		  <element name="street2" type="string"/>
+		  <element name="city" type="string"/>
+		  <element name="postal-code" type="string"/>
+		  <element name="country" type="string"/>
+		  <element name="state" type="string"/>
+		</sequence>
+	   </complexType>
+	   
+	   <complexType name="line-itemType"> 
+		<sequence>
+		  <element name="description" type="string"/>
+		  <element name="price" type="double"/>
+		  <element name="quantity" type="integer"/>
+		  <element name="line-total" type="double"/>
+		</sequence>
+		<attribute name="uid" type="string"/>
+	   </complexType>
+</schema>

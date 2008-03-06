@@ -1,0 +1,31 @@
+<definitions
+     name="E4XSample"
+     targetNamespace="http://xmlns.oracle.com/E4XSample"
+     xmlns="http://schemas.xmlsoap.org/wsdl/"
+     xmlns:plnk="http://schemas.xmlsoap.org/ws/2003/05/partner-link/"
+     xmlns:client="http://xmlns.oracle.com/E4XSample"
+    >
+    <types>
+        <schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:plnk="http://schemas.xmlsoap.org/ws/2003/05/partner-link/"
+             xmlns:client="http://xmlns.oracle.com/E4XSample">
+            <import namespace="http://xmlns.oracle.com/E4XSample" schemaLocation="E4XSample.xsd"/>
+        </schema>
+    </types>
+    <message name="E4XSampleRequestMessage">
+        <part name="payload" element="client:invoice"/>
+    </message>
+    <message name="E4XSampleResponseMessage">
+        <part name="payload" element="client:result"/>
+    </message>
+    <portType name="E4XSample">
+        <operation name="process">
+            <input message="client:E4XSampleRequestMessage"/>
+            <output message="client:E4XSampleResponseMessage"/>
+        </operation>
+    </portType>
+    <plnk:partnerLinkType name="E4XSample">
+        <plnk:role name="E4XSampleProvider">
+            <plnk:portType name="client:E4XSample"/>
+        </plnk:role>
+    </plnk:partnerLinkType>
+</definitions>
