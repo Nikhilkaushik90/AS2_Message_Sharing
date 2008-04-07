@@ -1,0 +1,20 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<BPELSuitcase>
+   <BPELProcess id="WSSecurityClient" src="WSSecurityClient.bpel">
+      <partnerLinkBindings>
+         <partnerLinkBinding name="client">
+            <property name="wsdlLocation">WSSecurityClient.wsdl</property>
+            <property name="wsseHeaders">propagate</property>
+            <property name="wsseOASIS2004Compliant">true</property>
+         </partnerLinkBinding>
+         <partnerLinkBinding name="WSSecurityService">
+            <property name="wsdlLocation">http://soa10:8889/orabpel/default/WSSecurityService/WSSecurityService?wsdl</property>
+            <property name="wsseHeaders">propagate</property>
+            <property name="wsseOASIS2004Compliant">true</property>
+         </partnerLinkBinding>
+      </partnerLinkBindings>
+      <configurations>
+         <property name="keepGlobalVariables" encryption="plaintext">true</property>
+      </configurations>
+   </BPELProcess>
+</BPELSuitcase>

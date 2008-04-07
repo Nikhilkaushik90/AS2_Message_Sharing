@@ -1,0 +1,110 @@
+<?xml version = "1.0" encoding = "UTF-8" ?>
+<!--
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  Oracle JDeveloper BPEL Designer 
+  
+  Created: Fri Apr 04 13:07:37 MSD 2008
+  Author:  oolenin
+  Purpose: Synchronous BPEL Process
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+-->
+<process name="WSSecurityClient"
+         targetNamespace="http://xmlns.oracle.com/WSSecurityClient"
+         xmlns="http://schemas.xmlsoap.org/ws/2003/03/business-process/"
+         xmlns:xp20="http://www.oracle.com/XSL/Transform/java/oracle.tip.pc.services.functions.Xpath20"
+         xmlns:bpws="http://schemas.xmlsoap.org/ws/2003/03/business-process/"
+         xmlns:ns1="http://xmlns.oracle.com/WSSecurityService"
+         xmlns:ldap="http://schemas.oracle.com/xpath/extension/ldap"
+         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+         xmlns:ns2="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd"
+         xmlns:client="http://xmlns.oracle.com/WSSecurityClient"
+         xmlns:bpelx="http://schemas.oracle.com/bpel/extension"
+         xmlns:ora="http://schemas.oracle.com/xpath/extension"
+         xmlns:orcl="http://www.oracle.com/XSL/Transform/java/oracle.tip.pc.services.functions.ExtFunc">
+  <!-- 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+      PARTNERLINKS                                                      
+      List of services participating in this BPEL process               
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  -->
+  <partnerLinks>
+    <!-- 
+      The 'client' role represents the requester of this service. It is 
+      used for callback. The location and correlation information associated
+      with the client role are automatically set using WS-Addressing.
+    -->
+    <partnerLink name="client" partnerLinkType="client:WSSecurityClient"
+                 myRole="WSSecurityClientProvider"/>
+    <partnerLink name="WSSecurityService"
+                 partnerRole="WSSecurityServiceProvider"
+                 partnerLinkType="ns1:WSSecurityService"/>
+  </partnerLinks>
+  <!-- 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+      VARIABLES                                                        
+      List of messages and XML documents used within this BPEL process 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  -->
+  <variables>
+    <!-- Reference to the message passed as input during initiation -->
+    <variable name="inputVariable"
+              messageType="client:WSSecurityClientRequestMessage"/>
+    <!-- Reference to the message that will be returned to the requester-->
+    <variable name="outputVariable"
+              messageType="client:WSSecurityClientResponseMessage"/>
+    <variable name="in" messageType="ns1:WSSecurityServiceRequestMessage"/>
+    <variable name="out" messageType="ns1:WSSecurityServiceResponseMessage"/>
+    <variable name="header" element="ns2:Security"/>
+  </variables>
+  <!-- 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+     ORCHESTRATION LOGIC                                               
+     Set of activities coordinating the flow of messages across the    
+     services integrated within this business process                  
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  -->
+  <sequence name="main">
+    <!-- Receive input from requestor. (Note: This maps to operation defined in WSSecurityClient.wsdl) -->
+    <receive name="receiveInput" partnerLink="client"
+             portType="client:WSSecurityClient" operation="process"
+             variable="inputVariable" createInstance="yes"/>
+    <!-- Generate reply to synchronous request -->
+    <flow name="Flow_1">
+      <sequence name="Propagate_Header">
+        <scope name="Scope_1">
+          <faultHandlers>
+            <catchAll>
+              <empty name="nop"/>
+            </catchAll>
+          </faultHandlers>
+          <invoke name="propagate" partnerLink="WSSecurityService"
+                  portType="ns1:WSSecurityService" operation="process"
+                  inputVariable="in" outputVariable="out"/>
+        </scope>
+      </sequence>
+      <sequence name="Make_header">
+        <assign name="Assign_1">
+          <copy>
+            <from>
+              <wsse:Security xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd"
+                             xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">
+                <wsse:UsernameToken xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">
+                  <wsse:Username>marcc</wsse:Username>
+                  <wsse:Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordText">java1</wsse:Password>
+                </wsse:UsernameToken>
+              </wsse:Security>
+            </from>
+            <to variable="header"/>
+          </copy>
+        </assign>
+        <invoke name="Invoke_1" partnerLink="WSSecurityService"
+                portType="ns1:WSSecurityService" operation="process"
+                inputVariable="in" outputVariable="out"
+                bpelx:inputHeaderVariable="header"/>
+      </sequence>
+    </flow>
+    <reply name="replyOutput" partnerLink="client"
+           portType="client:WSSecurityClient" operation="process"
+           variable="outputVariable"/>
+  </sequence>
+</process>
