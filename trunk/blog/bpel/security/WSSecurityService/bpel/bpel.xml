@@ -1,0 +1,15 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<BPELSuitcase>
+   <BPELProcess id="WSSecurityService" src="WSSecurityService.bpel">
+      <partnerLinkBindings>
+         <partnerLinkBinding name="client">
+            <property name="wsdlLocation">WSSecurityService.wsdl</property>
+         </partnerLinkBinding>
+      </partnerLinkBindings>
+      <configurations>
+         <property name="sensorLocation">sensor.xml</property>
+         <property name="sensorActionLocation">sensorAction.xml</property>
+         <property name="keepGlobalVariables" encryption="plaintext">true</property>
+      </configurations>
+   </BPELProcess>
+</BPELSuitcase>

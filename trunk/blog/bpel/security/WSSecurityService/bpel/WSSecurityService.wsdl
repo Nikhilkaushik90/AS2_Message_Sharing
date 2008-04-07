@@ -1,0 +1,32 @@
+<definitions
+     name="WSSecurityService"
+     targetNamespace="http://xmlns.oracle.com/WSSecurityService"
+     xmlns="http://schemas.xmlsoap.org/wsdl/"
+     xmlns:ns1="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd"
+     xmlns:plnk="http://schemas.xmlsoap.org/ws/2003/05/partner-link/"
+     xmlns:ns2="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd"
+     xmlns:client="http://xmlns.oracle.com/WSSecurityService"
+    >
+    <types>
+        <schema xmlns="http://www.w3.org/2001/XMLSchema">
+            <import namespace="http://xmlns.oracle.com/WSSecurityService" schemaLocation="WSSecurityService.xsd"/>
+        </schema>
+    </types>
+    <message name="WSSecurityServiceRequestMessage">
+        <part name="payload" element="client:WSSecurityServiceProcessRequest"/>
+    </message>
+    <message name="WSSecurityServiceResponseMessage">
+        <part name="payload" element="client:WSSecurityServiceProcessResponse"/>
+    </message>
+    <portType name="WSSecurityService">
+        <operation name="process">
+            <input message="client:WSSecurityServiceRequestMessage"/>
+            <output message="client:WSSecurityServiceResponseMessage"/>
+        </operation>
+    </portType>
+    <plnk:partnerLinkType name="WSSecurityService">
+        <plnk:role name="WSSecurityServiceProvider">
+            <plnk:portType name="client:WSSecurityService"/>
+        </plnk:role>
+    </plnk:partnerLinkType>
+</definitions>
