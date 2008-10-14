@@ -1,0 +1,374 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<Export generator="Cache" version="20" zv="Cache for Windows (Intel) 5.2.3 (Build 710_0_4981U)" ts="2007-04-17 16:30:59"><Class name="isc.soa.model.Client">
+<Description>Клиент  </Description>
+ <Super>Person</Super>
+  <Property name="clientCode">
+ <Description>Код клиента</Description>
+ <Type>%String</Type>
+ </Property>
+ <Property name="services">
+ <Type>isc.soa.model.Service</Type>
+ <Cardinality>many</Cardinality>
+ <Inverse>client</Inverse>
+ <Relationship>1</Relationship>
+ </Property>
+ <Property name="contacts">
+ <Type>isc.soa.model.Contact</Type>
+ <Cardinality>many</Cardinality>
+ <Inverse>client</Inverse>
+ <Relationship>1</Relationship>
+ </Property>
+</Class><Class name="isc.soa.model.Service">
+<Description>Услуга  </Description>
+ <Super>%Persistent</Super>
+  <Property name="issueType">
+ <Description>Способ выдачи</Description>
+ <Type>%String</Type><Parameter name="MAXLEN" value="250"/>
+ </Property>
+  <Property name="description">
+ <Description>Содержание</Description>
+ <Type>%Text</Type><Parameter name="MAXLEN" value="4000"/>
+ </Property>
+  <Property name="dateOut">
+ <Description>Дата выдачи</Description>
+ <Type>%Date</Type>
+ </Property>
+  <Property name="isPaid">
+ <Description>Платная услуга</Description>
+ <Type>%Boolean</Type>
+ </Property>
+  <Property name="sortnum">
+ <Description>Порядковый номер</Description>
+ <Type>%Integer</Type>
+ </Property>
+  <Property name="deadline">
+ <Description>Крайний срок исполнения</Description>
+ <Type>%Date</Type>
+ </Property>
+  <Property name="planned">
+ <Description>Плановая дата выдачи</Description>
+ <Type>%Date</Type>
+ </Property>
+  <Property name="endDate">
+ <Description>Дата окончания исполнения</Description>
+ <Type>%Date</Type>
+ </Property>
+  <Property name="startDate">
+ <Description>Дата начала исполнения</Description>
+ <Type>%Date</Type>
+ </Property>
+  <Property name="regdate">
+ <Description>Регистрационная дата</Description>
+ <Type>%Date</Type>
+ </Property>
+  <Property name="created">
+ <Description>Дата создания</Description>
+ <Type>%Date</Type>
+ </Property>
+  <Property name="regnum">
+ <Description>Регистрационный индекс</Description>
+ <Type>%String</Type><Parameter name="MAXLEN" value="250"/>
+ </Property>
+ <Property name="contract">
+ <Description>Контракт</Description>
+ <Type>Contract</Type>
+ </Property>
+ <Property name="outDocs">
+ <Type>isc.soa.model.Document</Type>
+ <Collection>list</Collection>
+ </Property>
+ <Property name="inputDocs">
+ <Type>isc.soa.model.Document</Type>
+ <Collection>list</Collection>
+ </Property>
+ <Property name="client">
+ <Type>isc.soa.model.Client</Type>
+ <Cardinality>one</Cardinality>
+ <Inverse>services</Inverse>
+ <Relationship>1</Relationship>
+ </Property>
+ <Property name="operator">
+ <Type>isc.soa.model.Operator</Type>
+ </Property>
+</Class><Class name="isc.soa.model.Contract">
+<Description>Контракт  </Description>
+ <Super>%Persistent</Super>
+  <Property name="serviceName">
+ <Description>Наименование</Description>
+ <Type>%String</Type>
+ </Property>
+  <Property name="short">
+ <Description>Краткое наименование</Description>
+ <Type>%String</Type><Parameter name="MAXLEN" value="250"/>
+ </Property>
+  <Property name="template">
+ <Description>Код печатной формы заявления</Description>
+ <Type>%String</Type><Parameter name="MAXLEN" value="250"/>
+ </Property>
+  <Property name="price">
+ <Description>Стоимость</Description>
+ <Type>%Integer</Type>
+ </Property>
+  <Property name="descriptionTemplate">
+ <Description>Шаблон содержания обращения</Description>
+ <Type>%Text</Type><Parameter name="MAXLEN" value="4000"/>
+ </Property>
+  <Property name="executionTime">
+ <Description>Срок оформления</Description>
+ <Type>%Integer</Type>
+ </Property>
+  <Property name="name">
+ <Description>Наименование</Description>
+ <Type>%String</Type><Parameter name="MAXLEN" value="250"/>
+ </Property>
+ <Property name="startDocuments">
+ <Type>isc.soa.model.DocumentType</Type>
+ <Collection>list</Collection>
+ </Property>
+ <Property name="resultDocuments">
+ <Type>isc.soa.model.DocumentType</Type>
+ <Collection>list</Collection>
+ </Property>
+ <Property name="ProviderServiceList">
+ <Description>Оказываемые услуги</Description>
+ <Type>ProviderService</Type>
+ <Cardinality>many</Cardinality>
+ <Inverse>contracts</Inverse>
+ <Relationship>1</Relationship>
+ </Property>
+</Class><Class name="isc.soa.model.DocumentType">
+<Description>Тип документа  </Description>
+ <Super>%Persistent</Super>
+  <Property name="name">
+ <Description>Наименование</Description>
+ <Type>%String</Type>
+ </Property>
+  <Property name="type">
+ <Description>Тип</Description>
+ <Type>%String</Type>
+ </Property>
+  <Property name="executionTime">
+ <Description>Срок оформления</Description>
+ <Type>%Integer</Type>
+ </Property>
+ 
+</Class><Class name="isc.soa.model.Provider">
+<Description>Поставщик услуги  </Description>
+ <Super>%Persistent</Super>
+  <Property name="contactInfo">
+ <Description>Контактная информация</Description>
+ <Type>%Text</Type><Parameter name="MAXLEN" value="4000"/>
+ </Property>
+  <Property name="fullname">
+ <Description>Полное наименование</Description>
+ <Type>%String</Type><Parameter name="MAXLEN" value="250"/>
+ </Property>
+  <Property name="short">
+ <Description>Краткое наименование</Description>
+ <Type>%String</Type><Parameter name="MAXLEN" value="250"/>
+ </Property>
+  <Property name="name">
+ <Description>Наименование</Description>
+ <Type>%String</Type><Parameter name="MAXLEN" value="250"/>
+ </Property>
+ <Property name="ProviderServiceList">
+ <Description>Оказываемые услуги</Description>
+ <Type>ProviderService</Type>
+ <Cardinality>many</Cardinality>
+ <Inverse>providers</Inverse>
+ <Relationship>1</Relationship>
+ </Property>
+ <Property name="operators">
+ <Type>isc.soa.model.Operator</Type>
+ <Cardinality>many</Cardinality>
+ <Inverse>company</Inverse>
+ <Relationship>1</Relationship>
+ </Property>
+</Class><Class name="isc.soa.model.Operator">
+<Description>Оператор  </Description>
+ <Super>%Persistent</Super>
+  <Property name="name">
+ <Description>Наименование</Description>
+ <Type>%String</Type>
+ </Property>
+ <Property name="company">
+ <Type>isc.soa.model.Provider</Type>
+ <Cardinality>one</Cardinality>
+ <Inverse>operators</Inverse>
+ <Relationship>1</Relationship>
+ </Property>
+</Class><Class name="isc.soa.model.Contact">
+<Description>Контактная информация  Перечень  телефонных номеров, адресов электронной почты и пр. для уведомления клиента о фактах исполнения услуги</Description>
+ <Super>%Persistent</Super>
+  <Property name="value">
+ <Description>Значение</Description>
+ <Type>%String</Type>
+ </Property>
+ <Property name="client">
+ <Type>isc.soa.model.Client</Type>
+ <Cardinality>one</Cardinality>
+ <Inverse>contacts</Inverse>
+ <Relationship>1</Relationship>
+ </Property>
+</Class><Class name="isc.soa.model.Document">
+<Description>Серисный Документ  </Description>
+ <Super>%Persistent</Super>
+  <Property name="description">
+ <Description>Примечание</Description>
+ <Type>%Text</Type><Parameter name="MAXLEN" value="4000"/>
+ </Property>
+  <Property name="sortnum">
+ <Description>Порядковый номер</Description>
+ <Type>%Integer</Type>
+ </Property>
+  <Property name="dateIn">
+ <Description>Дата внесения</Description>
+ <Type>%Date</Type>
+ </Property>
+  <Property name="name">
+ <Description>Наименование</Description>
+ <Type>%String</Type><Parameter name="MAXLEN" value="250"/>
+ </Property>
+  <Property name="regdate">
+ <Description>Регистрационная дата</Description>
+ <Type>%Date</Type>
+ </Property>
+  <Property name="regnum">
+ <Description>Регистрационный индекс</Description>
+ <Type>%String</Type><Parameter name="MAXLEN" value="250"/>
+ </Property>
+ <Property name="files">
+ <Type>isc.soa.model.DocumentFile</Type>
+ <Collection>list</Collection>
+ </Property>
+ <Property name="type">
+ <Description>Тип документа</Description>
+ <Type>DocumentType</Type>
+ </Property>
+</Class><Class name="isc.soa.model.SimpleContact">
+<Description>SimpleContact  </Description>
+ <Super>Contact</Super>
+  <Property name="type">
+ <Description>Тип</Description>
+ <Type>%String</Type>
+ </Property>
+ 
+</Class><Class name="isc.soa.model.Person">
+<Description>Физ. лицо  </Description>
+ <Super>%Persistent</Super>
+  <Property name="firstName">
+ <Description>Имя</Description>
+ <Type>%String</Type>
+ </Property>
+  <Property name="middleName">
+ <Description>Отчество</Description>
+ <Type>%String</Type>
+ </Property>
+  <Property name="familyName">
+ <Description>Фамилия</Description>
+ <Type>%String</Type>
+ </Property>
+  <Property name="dob">
+ <Description>Дата рождения</Description>
+ <Type>%Date</Type>
+ </Property>
+ <Property name="actualAddress">
+ <Description>Адрес</Description>
+ <Type>Address</Type>
+ </Property>
+ <Property name="registrationAddress">
+ <Description>Адрес</Description>
+ <Type>Address</Type>
+ </Property>
+ <Property name="certificates">
+ <Type>isc.soa.model.Certificate</Type>
+ <Cardinality>many</Cardinality>
+ <Inverse>person</Inverse>
+ <Relationship>1</Relationship>
+ </Property>
+</Class><Class name="isc.soa.model.DocumentFile">
+<Description>Файл  </Description>
+ <Super>%Persistent</Super>
+  <Property name="created">
+ <Description>Дата создания</Description>
+ <Type>%Date</Type>
+ </Property>
+  <Property name="bytes">
+ <Description>Размер в байтах</Description>
+ <Type>%Integer</Type>
+ </Property>
+  <Property name="filename">
+ <Description>Имя файла</Description>
+ <Type>%String</Type><Parameter name="MAXLEN" value="250"/>
+ </Property>
+  <Property name="file">
+ <Description>Файл</Description>
+ <Type>%GlobalBinaryStream</Type>
+ </Property>
+  <Property name="mime">
+ <Description>Тип MIME</Description>
+ <Type>%String</Type><Parameter name="MAXLEN" value="250"/>
+ </Property>
+  <Property name="URL">
+ <Description>URL</Description>
+ <Type>%String</Type><Parameter name="MAXLEN" value="250"/>
+ </Property>
+  <Property name="code">
+ <Description>Системный идентификатор</Description>
+ <Type>%String</Type><Parameter name="MAXLEN" value="250"/>
+ </Property>
+ 
+</Class><Class name="isc.soa.model.Address">
+<Description>Адрес  </Description>
+ <Super>%Persistent</Super>
+  <Property name="location">
+ <Description>Адресная строка</Description>
+ <Type>%String</Type>
+ </Property>
+ 
+</Class><Class name="isc.soa.model.Certificate">
+<Description>Удостоверение  </Description>
+ <Super>%Persistent</Super>
+  <Property name="cretificateType">
+ <Description>Тип удостоверяющего документа</Description>
+ <Type>%String</Type><Parameter name="MAXLEN" value="250"/>
+ </Property>
+  <Property name="regnum">
+ <Description>Номер удост. документа</Description>
+ <Type>%String</Type><Parameter name="MAXLEN" value="250"/>
+ </Property>
+  <Property name="serialnum">
+ <Description>Серия удост. документа</Description>
+ <Type>%String</Type><Parameter name="MAXLEN" value="250"/>
+ </Property>
+  <Property name="dateOut">
+ <Description>Дата выдачи удост. документа</Description>
+ <Type>%Date</Type>
+ </Property>
+  <Property name="authority">
+ <Description>Кто выдал удост. документ</Description>
+ <Type>%String</Type><Parameter name="MAXLEN" value="250"/>
+ </Property>
+ <Property name="person">
+ <Type>isc.soa.model.Person</Type>
+ <Cardinality>one</Cardinality>
+ <Inverse>certificates</Inverse>
+ <Relationship>1</Relationship>
+ </Property>
+</Class><Class name="isc.soa.model.ProviderService">
+<Description>Оказываемые услуги  </Description>
+ <Super>%Persistent</Super>
+ 
+ <Property name="providers">
+ <Type>Provider</Type>
+ <Cardinality>one</Cardinality>
+ <Inverse>ProviderServiceList</Inverse>
+ <Relationship>1</Relationship>
+ </Property>
+ <Property name="contracts">
+ <Type>Contract</Type>
+ <Cardinality>one</Cardinality>
+ <Inverse>ProviderServiceList</Inverse>
+ <Relationship>1</Relationship>
+ </Property>
+</Class></Export>
