@@ -1,0 +1,14 @@
+<component name="ArtifactManager">
+  <artifact name="as2client">
+    <output-path>$PROJECT_DIR$/out/artifacts/as2client</output-path>
+    <root id="root">
+      <element id="archive" name="isc_ens_as2.jar">
+        <element id="directory" name="META-INF">
+          <element id="file-copy" path="$PROJECT_DIR$/src/META-INF/MANIFEST.MF" />
+        </element>
+        <element id="module-output" name="AS2Client" />
+      </element>
+      <element id="artifact" artifact-name="openAS2" />
+    </root>
+  </artifact>
+</component>
