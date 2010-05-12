@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact name="openAS2">
+    <output-path>$PROJECT_DIR$/out/artifacts/openAS2</output-path>
+    <root id="root">
+      <element id="library" level="project" name="openAS2" />
+    </root>
+  </artifact>
+</component>
