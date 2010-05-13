@@ -24,67 +24,66 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class EdiIntAs2Client {
-   private static Log logger;
-   //TODO do object
+    private static Log logger;
+
+    //TODO do object
     //TODO extract interface
-   public static Response sendSync(ConnectionSettings settings,Request request) {
+    public static Response sendSync(ConnectionSettings settings, Request request) {
 
         setLogger(settings);
 
         Response response = new Response();
         Message msg = null;
+
         try {
 
-        Partnership partnership = buildPartnership(settings);
+            Partnership partnership = buildPartnership(settings);
 
-         msg = buildMessage(partnership,request);
-         response.originalMessageId = msg.getMessageID();
-
-        //logger.info("msgId to send: "+msg.getMessageID());
-
-        PKCS12CertificateFactory cf = new PKCS12CertificateFactory();
-        Map map = new HashMap();
-        map.put(PKCS12CertificateFactory.PARAM_FILENAME,settings.p12FilePath);
-        map.put(PKCS12CertificateFactory.PARAM_PASSWORD,settings.p12FilePassword);
+            msg = buildMessage(partnership, request);
+            response.originalMessageId = msg.getMessageID();
 
 
-        Session session = new Session();
-        cf.init(session,map);
-        session.setComponent(CertificateFactory.COMPID_CERTIFICATE_FACTORY,cf);
+            PKCS12CertificateFactory cf = new PKCS12CertificateFactory();
+            Map map = new HashMap();
+            map.put(PKCS12CertificateFactory.PARAM_FILENAME, settings.p12FilePath);
+            map.put(PKCS12CertificateFactory.PARAM_PASSWORD, settings.p12FilePassword);
 
-        Component pf = new SimplePartnershipFactory();
-        session.setComponent(PartnershipFactory.COMPID_PARTNERSHIP_FACTORY,pf);
 
-        Sender service = new Sender();
-        service.init(session,null);
+            Session session = new Session();
+            cf.init(session, map);
+            session.setComponent(CertificateFactory.COMPID_CERTIFICATE_FACTORY, cf);
 
-        //logger.info("sender is ready.");
+            Component pf = new SimplePartnershipFactory();
+            session.setComponent(PartnershipFactory.COMPID_PARTNERSHIP_FACTORY, pf);
 
-        service.handle(SenderModule.DO_SEND,msg,null);
+            Sender service = new Sender();
+            service.init(session, null);
 
+
+            service.handle(SenderModule.DO_SEND, msg, null);
 
 
         }
         catch (Exception e) {
-            logger.error(e.getMessage(),e);
+            logger.error(e.getMessage(), e);
             response.isError = true;
             response.exception = e;
-            response.errorDescription =  e.getMessage();
+            response.errorDescription = e.getMessage();
         }
         finally {
-              if (msg.getMDN()!=null) {
-                   response.receivedMdnId = msg.getMDN().getMessageID();
-                   response.text = msg.getMDN().getText();
-                   response.disposition = msg.getMDN().getAttribute("DISPOSITION");
-              }
+            if (msg.getMDN() != null) {
+                response.receivedMdnId = msg.getMDN().getMessageID();
+                response.text = msg.getMDN().getText();
+                response.disposition = msg.getMDN().getAttribute("DISPOSITION");
+            }
         }
 
         logger.info(response);
 
         return response;
-   }
+    }
 
-    private static Message buildMessage(Partnership partnership,Request request) throws MessagingException, FileNotFoundException, OpenAS2Exception {
+    private static Message buildMessage(Partnership partnership, Request request) throws MessagingException, FileNotFoundException, OpenAS2Exception {
 
         Message msg = new AS2Message();
 
@@ -93,17 +92,17 @@ public class EdiIntAs2Client {
         msg.setPartnership(partnership);
         msg.setMessageID(msg.generateMessageID());
 
-        msg.setAttribute(AS2Partnership.PA_AS2_URL,partnership.getAttribute(AS2Partnership.PA_AS2_URL));
-        msg.setAttribute(AS2Partnership.PID_AS2,partnership.getReceiverID(AS2Partnership.PID_AS2));
-        msg.setAttribute(Partnership.PID_EMAIL,partnership.getSenderID(Partnership.PID_EMAIL));
+        msg.setAttribute(AS2Partnership.PA_AS2_URL, partnership.getAttribute(AS2Partnership.PA_AS2_URL));
+        msg.setAttribute(AS2Partnership.PID_AS2, partnership.getReceiverID(AS2Partnership.PID_AS2));
+        msg.setAttribute(Partnership.PID_EMAIL, partnership.getSenderID(Partnership.PID_EMAIL));
 
         MimeBodyPart part;
 
         if (request.stream != null) part = new MimeBodyPart(request.stream);
-            else if (request.filename != null) part = new MimeBodyPart(new FileInputStream(request.filename));
-                else {
-                    part = new MimeBodyPart();
-                    part.setText(request.text);
+        else if (request.filename != null) part = new MimeBodyPart(new FileInputStream(request.filename));
+        else {
+            part = new MimeBodyPart();
+            part.setText(request.text);
 
         }
 
@@ -112,52 +111,54 @@ public class EdiIntAs2Client {
         return msg;
     }
 
-    public Response sendAsync(ConnectionSettings settings,Request request) {
-         throw new NotImplementedException();
-       //Response response = null;
-       //return response;
-   }
-   public Response processAsyncReply(ConnectionSettings settings,InputStream stream) {
-       throw new NotImplementedException();
-      // Response response = null;
-      // return response;
-   }
+    public Response sendAsync(ConnectionSettings settings, Request request) {
+        throw new NotImplementedException();
+        //Response response = null;
+        //return response;
+    }
 
-   private static void setLogger(ConnectionSettings settings) {
-       System.setProperty("org.apache.commons.logging.Log","org.apache.commons.logging.impl.SimpleLog");
-       System.setProperty("org.apache.commons.logging.simplelog.defaultlog",settings.logLevel);
+    public Response processAsyncReply(ConnectionSettings settings, InputStream stream) {
+        throw new NotImplementedException();
+        // Response response = null;
+        // return response;
+    }
 
-       
-       logger = LogFactory.getLog(EdiIntAs2Client.class.getSimpleName());
+    private static void setLogger(ConnectionSettings settings) {
+        System.setProperty("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.SimpleLog");
+        System.setProperty("org.apache.commons.logging.simplelog.defaultlog", settings.logLevel);
+
+
+        logger = LogFactory.getLog(EdiIntAs2Client.class.getSimpleName());
+
 
     }
 
-   private static Partnership buildPartnership(ConnectionSettings settings) {
+    private static Partnership buildPartnership(ConnectionSettings settings) {
 
         Partnership partnership = new Partnership();
 
         partnership.setName(settings.partnershipName);
 
-        partnership.setAttribute(AS2Partnership.PA_AS2_URL,settings.receiverAs2Url);
-        partnership.setReceiverID(AS2Partnership.PID_AS2,settings.receiverAs2Id);
-        partnership.setReceiverID(SecurePartnership.PID_X509_ALIAS,settings.receiverKeyAlias);
+        partnership.setAttribute(AS2Partnership.PA_AS2_URL, settings.receiverAs2Url);
+        partnership.setReceiverID(AS2Partnership.PID_AS2, settings.receiverAs2Id);
+        partnership.setReceiverID(SecurePartnership.PID_X509_ALIAS, settings.receiverKeyAlias);
 
-        partnership.setSenderID(AS2Partnership.PID_AS2,settings.senderAs2Id);
-        partnership.setSenderID(SecurePartnership.PID_X509_ALIAS,settings.senderKeyAlias);
-        partnership.setSenderID(Partnership.PID_EMAIL,settings.senderEmail);
+        partnership.setSenderID(AS2Partnership.PID_AS2, settings.senderAs2Id);
+        partnership.setSenderID(SecurePartnership.PID_X509_ALIAS, settings.senderKeyAlias);
+        partnership.setSenderID(Partnership.PID_EMAIL, settings.senderEmail);
 
 
-        partnership.setAttribute(AS2Partnership.PA_AS2_MDN_OPTIONS,settings.mdnOptions);
+        partnership.setAttribute(AS2Partnership.PA_AS2_MDN_OPTIONS, settings.mdnOptions);
 
-        partnership.setAttribute(SecurePartnership.PA_ENCRYPT,settings.encrypt);
-        partnership.setAttribute(SecurePartnership.PA_SIGN,settings.sign);
-        partnership.setAttribute(Partnership.PA_PROTOCOL,"as2");
-         //partnership.setAttribute(AS2Partnership.PA_AS2_MDN_TO,"http://localhost:10080");
-        partnership.setAttribute(AS2Partnership.PA_AS2_RECEIPT_OPTION,null);
+        partnership.setAttribute(SecurePartnership.PA_ENCRYPT, settings.encrypt);
+        partnership.setAttribute(SecurePartnership.PA_SIGN, settings.sign);
+        partnership.setAttribute(Partnership.PA_PROTOCOL, "as2");
+        //partnership.setAttribute(AS2Partnership.PA_AS2_MDN_TO,"http://localhost:10080");
+        partnership.setAttribute(AS2Partnership.PA_AS2_RECEIPT_OPTION, null);
 
-        partnership.setAttribute(AS2Partnership.PA_MESSAGEID,settings.format);
+        partnership.setAttribute(AS2Partnership.PA_MESSAGEID, settings.format);
 
         return partnership;
-   }
+    }
 
 }
