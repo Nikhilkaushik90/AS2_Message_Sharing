@@ -11,7 +11,6 @@ import org.openas2.params.InvalidParameterException;
 import org.openas2.partner.AS2Partnership;
 import org.openas2.partner.Partnership;
 import org.openas2.partner.SecurePartnership;
-import org.openas2.processor.sender.AS2SenderModule;
 import org.openas2.processor.sender.HttpResponseException;
 import org.openas2.processor.sender.HttpSenderModule;
 import org.openas2.processor.sender.SenderModule;
@@ -24,9 +23,9 @@ import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.util.Map;
 
-public class Sender extends HttpSenderModule {
+class Sender extends HttpSenderModule {
 
-	private Log logger = LogFactory.getLog(Sender.class.getSimpleName());
+    private Log logger = LogFactory.getLog(Sender.class.getSimpleName());
 
 
     public boolean canHandle(String action, Message msg, Map options) {
@@ -40,7 +39,7 @@ public class Sender extends HttpSenderModule {
     public void handle(String action, Message msg, Map options) throws OpenAS2Exception {
 
 
-        logger.info("message submitted"+msg.getLoggingText());
+        logger.info("message submitted" + msg.getLoggingText());
 
         if (!(msg instanceof AS2Message)) {
             throw new OpenAS2Exception("Can't send non-AS2 message");
@@ -49,7 +48,7 @@ public class Sender extends HttpSenderModule {
         // verify all required information is present for sending
         checkRequired(msg);
 
-        int retries = retries (options);
+        int retries = retries(options);
 
         //logger.info("message startetd"+msg.getLoggingText());
 
@@ -69,27 +68,27 @@ public class Sender extends HttpSenderModule {
                 updateHttpHeaders(conn, msg);
                 msg.setAttribute(NetAttribute.MA_DESTINATION_IP, conn.getURL().getHost());
                 msg.setAttribute(NetAttribute.MA_DESTINATION_PORT, Integer.toString(conn.getURL().getPort()));
-				DispositionOptions dispOptions = new DispositionOptions(
-						conn.getRequestProperty("Disposition-Notification-Options"));
+                DispositionOptions dispOptions = new DispositionOptions(
+                        conn.getRequestProperty("Disposition-Notification-Options"));
 
-				// Calculate and get the original mic
-				boolean includeHeaders = (msg.getHistory().getItems().size() > 1);
+                // Calculate and get the original mic
+                boolean includeHeaders = (msg.getHistory().getItems().size() > 1);
 
 
-				String mic = AS2UtilOld.getCryptoHelper().calculateMIC(
-						msg.getData(), dispOptions.getMicalg(),
-						includeHeaders);
+                String mic = AS2UtilOld.getCryptoHelper().calculateMIC(
+                        msg.getData(), dispOptions.getMicalg(),
+                        includeHeaders);
 
                 if (msg.getPartnership().getAttribute(
-						AS2Partnership.PA_AS2_RECEIPT_OPTION) != null) {
-                	// if yes : PA_AS2_RECEIPT_OPTION) != null
-					// then keep the original mic & message id.
-					// then wait for the another HTTP call by receivers
+                        AS2Partnership.PA_AS2_RECEIPT_OPTION) != null) {
+                    // if yes : PA_AS2_RECEIPT_OPTION) != null
+                    // then keep the original mic & message id.
+                    // then wait for the another HTTP call by receivers
 
-					storePendingInfo((AS2Message) msg, mic);
-				}
+                    storePendingInfo((AS2Message) msg, mic);
+                }
 
-                logger.info("connecting to " + url+msg.getLoggingText());
+                logger.info("connecting to " + url + msg.getLoggingText());
 
                 // Note: closing this stream causes connection abort errors on some AS2 servers
                 OutputStream messageOut = conn.getOutputStream();
@@ -103,71 +102,70 @@ public class Sender extends HttpSenderModule {
                     int bytes = IOUtilOld.copy(messageIn, messageOut);
 
                     Profiler.endProfile(transferStub);
-                    logger.info("transferred " + IOUtilOld.getTransferRate(bytes, transferStub)+msg.getLoggingText());
+                    logger.info("transferred " + IOUtilOld.getTransferRate(bytes, transferStub) + msg.getLoggingText());
                 } finally {
                     messageIn.close();
                 }
                 //			Check the HTTP Response code
                 if ((conn.getResponseCode() != HttpURLConnection.HTTP_OK)
-                    && (conn.getResponseCode() != HttpURLConnection.HTTP_CREATED)
-                    && (conn.getResponseCode() != HttpURLConnection.HTTP_ACCEPTED)
-                    && (conn.getResponseCode() != HttpURLConnection.HTTP_PARTIAL)
-                    && (conn.getResponseCode() != HttpURLConnection.HTTP_NO_CONTENT)
-                     )
-                 {
-                	logger.error("error url " +url.toString()
-                			+ " rc " +conn.getResponseCode()
-                			+ " rm " +conn.getResponseMessage());
+                        && (conn.getResponseCode() != HttpURLConnection.HTTP_CREATED)
+                        && (conn.getResponseCode() != HttpURLConnection.HTTP_ACCEPTED)
+                        && (conn.getResponseCode() != HttpURLConnection.HTTP_PARTIAL)
+                        && (conn.getResponseCode() != HttpURLConnection.HTTP_NO_CONTENT)
+                        ) {
+                    logger.error("error url " + url.toString()
+                            + " rc " + conn.getResponseCode()
+                            + " rm " + conn.getResponseMessage());
                     throw new HttpResponseException(url.toString(), conn.getResponseCode(), conn.getResponseMessage());
                 }
 
                 // Asynch MDN 2007-03-12
                 // Receive an MDN
-				try {
-					// Receive an MDN
-					if (msg.isRequestingMDN()) {
+                try {
+                    // Receive an MDN
+                    if (msg.isRequestingMDN()) {
 
 //						 Check if the AsyncMDN is required
-						if (msg.getPartnership().getAttribute(
-								AS2Partnership.PA_AS2_RECEIPT_OPTION) == null) {
-							receiveMDN((AS2Message) msg, conn, mic); // go
-																		// ahead
-							// to
-							// receive
-							// sync MDN
-				     		logger.info("message sent"+msg.getLoggingText());
-						}
-					}
+                        if (msg.getPartnership().getAttribute(
+                                AS2Partnership.PA_AS2_RECEIPT_OPTION) == null) {
+                            receiveMDN((AS2Message) msg, conn, mic); // go
+                            // ahead
+                            // to
+                            // receive
+                            // sync MDN
+                            logger.info("message sent" + msg.getLoggingText());
+                        }
+                    }
 
-				} catch (DispositionException de) { // If a disposition error
-					// hasn't been handled, the
-					// message transfer
-					// was not successful
-					throw de;
-				} catch (OpenAS2Exception oae) { // Don't resend or fail,
-					// just log an error if one
-					// occurs while
-					// receiving the MDN
-                    logger.error(OpenAS2Exception.SOURCE_MESSAGE,oae);
-					OpenAS2Exception oae2 = new OpenAS2Exception(
-							"Message was sent but an error occured while receiving the MDN");
-					oae2.initCause(oae);
-					oae2.addSource(OpenAS2Exception.SOURCE_MESSAGE, msg);
-					oae2.terminate();
+                } catch (DispositionException de) { // If a disposition error
+                    // hasn't been handled, the
+                    // message transfer
+                    // was not successful
+                    throw de;
+                } catch (OpenAS2Exception oae) { // Don't resend or fail,
+                    // just log an error if one
+                    // occurs while
+                    // receiving the MDN
+                    logger.error(OpenAS2Exception.SOURCE_MESSAGE, oae);
+                    OpenAS2Exception oae2 = new OpenAS2Exception(
+                            "Message was sent but an error occured while receiving the MDN");
+                    oae2.initCause(oae);
+                    oae2.addSource(OpenAS2Exception.SOURCE_MESSAGE, msg);
+                    oae2.terminate();
                     throw oae2;
-				}
+                }
 
-			} finally {
-				conn.disconnect();
-			}
+            } finally {
+                conn.disconnect();
+            }
 
         } catch (HttpResponseException hre) { // Resend if the HTTP Response
-												// has an error code
-            logger.error("error hre " +hre.getMessage());
+            // has an error code
+            logger.error("error hre " + hre.getMessage());
             hre.terminate();
             resend(msg, hre, retries);
         } catch (IOException ioe) { // Resend if a network error occurs during
-									// transmission
+            // transmission
 
             WrappedException wioe = new WrappedException(ioe);
             wioe.addSource(OpenAS2Exception.SOURCE_MESSAGE, msg);
@@ -175,7 +173,7 @@ public class Sender extends HttpSenderModule {
             throw wioe;
             //resend(msg, wioe, retries);
         } catch (Exception e) { // Propagate error if it can't be handled by a
-								// resend
+            // resend
             throw new WrappedException(e);
         }
     }
@@ -185,8 +183,8 @@ public class Sender extends HttpSenderModule {
     //added originalmic
 
     /**
-     * @param msg AS2Message
-     * @param conn URLConnection
+     * @param msg         AS2Message
+     * @param conn        URLConnection
      * @param originalmic mic value from original msg
      */
     protected void receiveMDN(AS2Message msg, HttpURLConnection conn, String originalmic) throws OpenAS2Exception, IOException {
@@ -229,9 +227,9 @@ public class Sender extends HttpSenderModule {
             //logger.info("ALIAS: "+mdn.getPartnership()); //.getSenderID(SecurePartnership.PID_X509_ALIAS));
             //X509Certificate senderCert = cFx.getCertificate(mdn, Partnership.PTYPE_SENDER);
 
-             String certAlias = msg.getPartnership().getReceiverID(SecurePartnership.PID_X509_ALIAS);
-             //logger.info("CERT ALIAS: "+certAlias);
-             X509Certificate senderCert  = cFx.getCertificate(msg, Partnership.PTYPE_RECEIVER);
+            String certAlias = msg.getPartnership().getReceiverID(SecurePartnership.PID_X509_ALIAS);
+            //logger.info("CERT ALIAS: "+certAlias);
+            X509Certificate senderCert = cFx.getCertificate(msg, Partnership.PTYPE_RECEIVER);
 
             AS2UtilOld.parseMDN(msg, senderCert);
 
@@ -239,20 +237,19 @@ public class Sender extends HttpSenderModule {
 
             String disposition = msg.getMDN().getAttribute(AS2MessageMDN.MDNA_DISPOSITION);
 
-            logger.info("received MDN [" + disposition + "]"+msg.getLoggingText());
+            logger.info("received MDN [" + disposition + "]" + msg.getLoggingText());
 
             //Asynch MDN  2007-03-12
             // Verify if the original mic is equal to the mic in returned MDN
             String returnmic = msg.getMDN().getAttribute(AS2MessageMDN.MDNA_MIC);
 
-            if ( ! returnmic.replaceAll(" ", "").equals(originalmic.replaceAll(" ", ""))) {
-            	//file was sent completely but the returned mic was not matched,
-            	// don't know it needs or needs not to be resent ? it's depended on what !
-            	// anyway, just log the warning message here.
-            logger.info("mic is not matched, original mic: " + originalmic + " return mic: "+ returnmic+msg.getLoggingText());
-            }
-            else {
-            logger.info("mic is matched, mic: " + returnmic+msg.getLoggingText());
+            if (!returnmic.replaceAll(" ", "").equals(originalmic.replaceAll(" ", ""))) {
+                //file was sent completely but the returned mic was not matched,
+                // don't know it needs or needs not to be resent ? it's depended on what !
+                // anyway, just log the warning message here.
+                logger.info("mic is not matched, original mic: " + originalmic + " return mic: " + returnmic + msg.getLoggingText());
+            } else {
+                logger.info("mic is matched, mic: " + returnmic + msg.getLoggingText());
             }
 
             try {
@@ -299,15 +296,15 @@ public class Sender extends HttpSenderModule {
     }
 
 
-
     private void resend(Message msg, OpenAS2Exception cause, int tries) throws OpenAS2Exception {
-    	if (resend (SenderModule.DO_SEND, msg, cause, tries)) return;
+        if (resend(SenderModule.DO_SEND, msg, cause, tries)) return;
         // Oh dear, we've run out of reetries, do something interesting.
-    	// TODO create a fake failure MDN
-    	logger.info("Message abandoned"+msg.getLoggingText());
+        // TODO create a fake failure MDN
+        logger.info("Message abandoned" + msg.getLoggingText());
     }
 
     // Returns a MimeBodyPart or MimeMultipart object
+
     protected MimeBodyPart secure(Message msg) throws Exception {
         // Set up encrypt/sign variables
         MimeBodyPart dataBP = msg.getData();
@@ -333,7 +330,7 @@ public class Sender extends HttpSenderModule {
                 // *** add one more item to msg history
                 msg.getHistory().getItems().add(historyItem);
 
-                logger.debug("signed data"+msg.getLoggingText());
+                logger.debug("signed data" + msg.getLoggingText());
             }
 
             // Encrypt the data if requested
@@ -348,7 +345,7 @@ public class Sender extends HttpSenderModule {
                 // *** add one more item to msg history
                 msg.getHistory().getItems().add(historyItem);
 
-                logger.debug("encrypted data"+msg.getLoggingText());
+                logger.debug("encrypted data" + msg.getLoggingText());
             }
         }
 
@@ -394,57 +391,58 @@ public class Sender extends HttpSenderModule {
 
         String contentDisp = msg.getContentDisposition();
         if (contentDisp != null) {
-        	conn.setRequestProperty("Content-Disposition", contentDisp);
+            conn.setRequestProperty("Content-Disposition", contentDisp);
         }
 
     }
 
 
     //Asynch MDN  2007-03-12
+
     /**
      * for storing original mic & outgoing file into pending information file
+     *
      * @param msg AS2Message
      * @param mic
      * @throws WrappedException
      */
     protected void storePendingInfo(AS2Message msg, String mic) throws WrappedException {
-		try {
+        try {
 
 
+            String pendingFolder = (String) getSession().getComponent("processor").getParameters().get("pendingmdninfo");
 
-			String pendingFolder = (String) getSession().getComponent("processor").getParameters().get("pendingmdninfo");
 
+            FileOutputStream fos = new FileOutputStream(
+                    pendingFolder + "/"
+                            + msg.getMessageID().substring(1,
+                            msg.getMessageID().length() - 1));
+            fos.write((mic + "\n").getBytes());
+            logger.debug("Original MIC is : " + mic + msg.getLoggingText());
 
-			FileOutputStream fos = new FileOutputStream(
-					pendingFolder + "/"
-               			+ msg.getMessageID().substring(1,
-							msg.getMessageID().length() - 1));
-			fos.write((mic + "\n").getBytes());
-			logger.debug("Original MIC is : " + mic+msg.getLoggingText());
+            // input pending folder & original outgoing file name to get and
+            // unique file name
+            // in order to avoid file overwritting.
+            String pendingFile = (String) getSession().getComponent("processor").getParameters().get("pendingmdn")
+                    + "/" + msg.getMessageID().substring(1,
+                    msg.getMessageID().length() - 1);
 
-			// input pending folder & original outgoing file name to get and
-			// unique file name
-			// in order to avoid file overwritting.
-			String pendingFile = (String) getSession().getComponent("processor").getParameters().get("pendingmdn")
-					+ "/" + msg.getMessageID().substring(1,
-							msg.getMessageID().length() - 1);
+            logger.info("Save Original mic & message id. information into folder : "
+                    + pendingFile + msg.getLoggingText());
+            fos.write(pendingFile.getBytes());
+            fos.close();
+            msg.setAttribute(FileAttribute.MA_PENDINGFILE, pendingFile);
+            msg.setAttribute(FileAttribute.MA_STATUS, FileAttribute.MA_PENDING);
 
-		    logger.info("Save Original mic & message id. information into folder : "
-							+ pendingFile+msg.getLoggingText());
-			fos.write(pendingFile.getBytes());
-			fos.close();
-			msg.setAttribute(FileAttribute.MA_PENDINGFILE, pendingFile);
-			msg.setAttribute(FileAttribute.MA_STATUS, FileAttribute.MA_PENDING);
+        } catch (Exception e) {
 
-		} catch (Exception e) {
-
-			WrappedException we = new WrappedException(e);
+            WrappedException we = new WrappedException(e);
             we.addSource(OpenAS2Exception.SOURCE_MESSAGE, msg);
             throw we;
 
 
-		}
-	}
+        }
+    }
 
 
 }
